@@ -18,12 +18,15 @@ var (
 	ctx = context.Background()
 )
 
-func NewRedisService() (*RedisService, error) {
+func NewRedisService(address string, timeout, dialTimeout time.Duration) (*RedisService, error) {
 	const op = "cache.redis.NewRedisService"
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
+		Addr:         address,
+		Password:     "",
+		DB:           0,
+		DialTimeout:  dialTimeout,
+		ReadTimeout:  timeout,
+		WriteTimeout: timeout,
 	})
 
 	if _, err := redisClient.Ping(ctx).Result(); err != nil {
@@ -58,4 +61,14 @@ func (s *RedisService) RetrieveUrl(alias string) (string, error) {
 	}
 
 	return result, nil
+}
+
+// Delete url by alias
+func (s *RedisService) DeleteUrl(alias string) error {
+	const op = "storage.redis.DeleteUrl"
+
+	if err := s.redisClient.Del(ctx, alias).Err(); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	return nil
 }
