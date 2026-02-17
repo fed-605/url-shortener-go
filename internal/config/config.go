@@ -12,12 +12,12 @@ import (
 
 type Config struct {
 	Env        string     `yaml:"env" env-default:"local"` // we can add env-required:"true" to be sure that env isn't default
-	DB         Storage    `yaml:"storage"`
+	DB         Database   `yaml:"database"`
 	Server     HTTPServer `yaml:"http_server"`
 	CacheStore Cache      `yaml:"cache"`
 }
 
-type Storage struct {
+type Database struct {
 	Host    string `yaml:"host"`
 	Port    string `yaml:"port"`
 	User    string `yaml:"user"`
@@ -43,7 +43,7 @@ type Cache struct {
 // Use this to have an option of choosing our
 // environment(dev,prod,local etc.)
 func MustLoad() string {
-	if err := godotenv.Load("./../../.env"); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Fatal("no .env file found")
 	}
 	configPath := os.Getenv("CONFIG_PATH")
@@ -74,11 +74,12 @@ func (c *Config) PostgreDSN() string {
 	password := os.Getenv("DB_PASSWORD")
 
 	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/postgres?sslmode=%s",
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		c.DB.User,
 		password,
 		c.DB.Host,
 		c.DB.Port,
+		c.DB.DBName,
 		c.DB.SSLMode,
 	)
 }

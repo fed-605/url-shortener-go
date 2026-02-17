@@ -1,6 +1,4 @@
 env: "local"
-storage:
-  sdfs
 
 http_server:
   address: ":8080"

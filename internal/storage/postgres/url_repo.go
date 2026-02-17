@@ -19,7 +19,7 @@ func (s *PostgresStore) SaveUrl(url string, alias string) error {
 
 	defer cancel()
 
-	query := `INSERT INTO url(url,alias)
+	query := `INSERT INTO urls(url,alias)
 	VALUES($1,$2);`
 
 	if _, err := s.db.Exec(ctx, query, url, alias); err != nil {
@@ -44,7 +44,7 @@ func (s *PostgresStore) GetUrl(alias string) (string, error) {
 
 	var url string
 
-	query := `SELECT url FROM url WHERE alias = $1;`
+	query := `SELECT url FROM urls WHERE alias = $1;`
 
 	if err := s.db.QueryRow(ctx, query, alias).Scan(&url); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -63,7 +63,7 @@ func (s *PostgresStore) DeleteUrl(alias string) error {
 
 	defer cancel()
 
-	query := `DELETE FROM url WHERE alias = $1;`
+	query := `DELETE FROM urls WHERE alias = $1;`
 
 	res, err := s.db.Exec(ctx, query, alias)
 	if err != nil {
@@ -81,33 +81,39 @@ func (s *PostgresStore) DeleteUrl(alias string) error {
 	return nil
 }
 
-// get all urls by user id
-func (s *PostgresStore) GetAllUrls(user_id int) (*[]storage.Url, error) {
-	const op = "storage.postgres.GetAllUrls"
+// get all records
+func (s *PostgresStore) GetAllRecords() ([]storage.Url, error) {
+	const op = "storage.postgres.GetAllRecords"
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 
 	defer cancel()
 
-	query := `SELECT id,url,alias,user_id FROM url WHERE user_id = $1;`
+	query := `SELECT id,url,alias FROM urls`
 
-	rows, err := s.db.Query(ctx, query, user_id)
+	rows, err := s.db.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+
 	defer rows.Close()
 
 	var urls []storage.Url
 
 	for rows.Next() {
 		var url storage.Url
-		if err := rows.Scan(&url.Id, &url.Url, &url.Alias, &url.UserId); err != nil {
+
+		if err := rows.Scan(&url.Id, &url.Url, &url.Alias); err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}
+
 		urls = append(urls, url)
 	}
+
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	return &urls, nil
+
+	return urls, nil
+
 }
