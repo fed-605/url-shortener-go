@@ -1,0 +1,20 @@
+env: "local"
+
+http_server:
+  address: ":8080"
+  timeout: 4s
+  idle_timeout: 60s
+  user: "myuser"
+  password: "pass"
+
+database:
+  host: postgres
+  port: 5432
+  user: postgres
+  dbname: myapp
+  sslmode: disable
+
+cache:
+  address: redis:6379
+  timeout: 3s
+  dial_timeout: 5s
