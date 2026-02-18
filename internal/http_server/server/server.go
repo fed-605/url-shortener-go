@@ -23,10 +23,9 @@ func New(address string, router http.Handler, readTO, writeTO, idleTO time.Durat
 }
 
 func (s *Server) Run() error {
-	if err := s.httpServer.ListenAndServe(); err != nil {
-		if !errors.Is(err, http.ErrServerClosed) {
-			return errors.New("error with running server")
-		}
+	err := s.httpServer.ListenAndServe()
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
 	}
 	return nil
 }
